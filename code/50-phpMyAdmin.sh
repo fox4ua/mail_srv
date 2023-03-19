@@ -1,6 +1,6 @@
 #!/bin/bash
 # =================================================
-echo -e "\e[92m -========Install First step ...========- \e[39m"
+echo -e "\e[92m -========Install phpMyAdmin ...========- \e[39m"
 # =================================================
 mkdir -p /var/lib/phpmyadmin/tmp
 chown -R www-data:www-data /var/lib/phpmyadmin
