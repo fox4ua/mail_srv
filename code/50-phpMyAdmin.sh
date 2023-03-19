@@ -8,3 +8,4 @@ cd /var/www/
 wget https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.zip
 unzip phpMyAdmin-5.2.1-all-languages.zip
 mv phpMyAdmin-5.2.1-all-languages pma
+sudo cp /var/www/pma/config.sample.inc.php /var/www/pma/config.inc.php
