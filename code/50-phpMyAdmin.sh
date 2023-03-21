@@ -10,8 +10,11 @@ unzip phpMyAdmin-5.2.1-all-languages.zip
 mv phpMyAdmin-5.2.1-all-languages pma
 sudo cp /var/www/pma/config.sample.inc.php /var/www/pma/config.inc.php
 
-echo '$CONF["configured"] = '{$RESULT}';' >> /var/www/html/postfixadmin/config.inc.php
+blowfish_secret=$(pwgen -s 32 1)
+sed -i "s/blowfish_secret'] = '/blowfish_secret'] = '${blowfish_secret}/" /var/www/pma/config.inc.php
+echo "$cfg['TempDir'] = '/var/lib/phpmyadmin/tmp';" >> /var/www/pma/config.inc.php
+
+echo '$CONF["configured"] = '{$blowfish_secret}';' >> /var/www/html/postfixadmin/config.inc.php
 echo "$cfg['blowfish_secret'] = '';" >> /var/www/html/pma/config.inc.php
- 
- blowfish_secret=$(pwgen -s 32 1)
-echo $blowfish_secret
+# =================================================
+
