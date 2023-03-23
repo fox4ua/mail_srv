@@ -13,4 +13,6 @@ sudo cp /var/www/pma/config.sample.inc.php /var/www/pma/config.inc.php
 blowfish_secret=$(pwgen -s 32 1)
 sed -i "s/blowfish_secret'] = '/blowfish_secret'] = '${blowfish_secret}/" /var/www/pma/config.inc.php
 echo "$cfg['TempDir'] = '/var/lib/phpmyadmin/tmp';" >> /var/www/pma/config.inc.php
+
+mv code/src/phpMyAdmin/phpmyadmin.conf /etc/apache2/conf-available/phpmyadmin.conf
 # =================================================
