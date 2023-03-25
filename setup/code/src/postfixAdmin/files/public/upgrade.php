@@ -16,8 +16,7 @@ if (empty($CONF)) {
  * @param string the object name
  * @return boolean true if it exists
  */
-function _pgsql_object_exists($name)
-{
+function _pgsql_object_exists($name) {
     $sql = "select relname from pg_class where relname = '$name'";
     $r = db_query_one($sql);
     return !empty($r);
@@ -28,8 +27,7 @@ function _pgsql_object_exists($name)
  * @param string $field
  * @return bool
  */
-function _pgsql_field_exists($table, $field)
-{
+function _pgsql_field_exists($table, $field) {
     # $table = table_by_key($table); # _pgsql_field_exists is always called with the expanded table name - don't expand it twice
     $sql = '
     SELECT
@@ -53,8 +51,7 @@ function _pgsql_field_exists($table, $field)
     return !empty($r);
 }
 
-function _mysql_field_exists($table, $field)
-{
+function _mysql_field_exists($table, $field) {
     # $table = table_by_key($table); # _mysql_field_exists is always called with the expanded table name - don't expand it twice
     $sql = "SHOW COLUMNS FROM $table LIKE ?";
     $r = db_query_all($sql, array( $field));
@@ -62,8 +59,7 @@ function _mysql_field_exists($table, $field)
     return !empty($r);
 }
 
-function _sqlite_field_exists($table, $field)
-{
+function _sqlite_field_exists($table, $field) {
     $sql = "PRAGMA table_info($table)";
     $r = db_query_all($sql);
 
@@ -75,8 +71,7 @@ function _sqlite_field_exists($table, $field)
     return false;
 }
 
-function _db_field_exists($table, $field)
-{
+function _db_field_exists($table, $field) {
     global $CONF;
     if ($CONF['database_type'] == 'pgsql') {
         return _pgsql_field_exists($table, $field);
@@ -86,13 +81,11 @@ function _db_field_exists($table, $field)
         return _mysql_field_exists($table, $field);
     }
 }
-function _upgrade_filter_function($name)
-{
+function _upgrade_filter_function($name) {
     return preg_match('/upgrade_[\d]+(_mysql|_pgsql|_sqlite|_mysql_pgsql)?$/', $name) == 1;
 }
 
-function _db_add_field($table, $field, $fieldtype, $after = '')
-{
+function _db_add_field($table, $field, $fieldtype, $after = '') {
     global $CONF;
 
     $query = "ALTER TABLE " . table_by_key($table) . " ADD COLUMN $field $fieldtype";
@@ -107,8 +100,7 @@ function _db_add_field($table, $field, $fieldtype, $after = '')
     }
 }
 
-function echo_out($text)
-{
+function echo_out($text) {
     if (defined('PHPUNIT_TEST')) {
         //error_log("" . $text);
     } else {
@@ -116,8 +108,7 @@ function echo_out($text)
     }
 }
 
-function printdebug($text)
-{
+function printdebug($text) {
     if (safeget('debug') != "") {
         echo_out("<p style='color:#999'>$text</p>");
     }
@@ -162,8 +153,7 @@ if ($CONF['database_type'] == 'pgsql') {
 $version = check_db_version(false);
 _do_upgrade($version);
 
-function _do_upgrade($current_version)
-{
+function _do_upgrade($current_version) {
     global $CONF;
 
     $target_version = 0;
@@ -174,8 +164,8 @@ function _do_upgrade($current_version)
     foreach ($our_upgrade_functions as $function_name) {
         $bits = explode("_", $function_name);
         $function_number = $bits[1];
-        if ($function_number > $current_version && $function_number > $target_version) {
-            $target_version = $function_number;
+        if (is_numeric($function_number)) {
+            $target_version = max($target_version, $function_number);
         }
     }
 
@@ -246,8 +236,7 @@ function _do_upgrade($current_version)
  * @return void
  */
 
-function db_query_parsed($sql, $ignore_errors = 0, $attach_mysql = "")
-{
+function db_query_parsed($sql, $ignore_errors = 0, $attach_mysql = "") {
     global $CONF;
 
     if (db_mysql()) {
@@ -257,7 +246,7 @@ function db_query_parsed($sql, $ignore_errors = 0, $attach_mysql = "")
                 '{UNSIGNED}'        => 'unsigned'  ,
                 '{FULLTEXT}'        => 'FULLTEXT',
                 '{BOOLEAN}'         => "tinyint(1) NOT NULL DEFAULT '" . db_get_boolean(false) . "'",
-                '{UTF-8}'           => '/*!40100 CHARACTER SET utf8mb4 */',
+                '{UTF-8}'           => '/*!40100 CHARACTER SET utf8 */',
                 '{LATIN1}'          => '/*!40100 CHARACTER SET latin1 COLLATE latin1_general_ci */',
                 '{IF_NOT_EXISTS}'   => 'IF NOT EXISTS',
                 '{RENAME_COLUMN}'   => 'CHANGE COLUMN',
@@ -352,8 +341,7 @@ function db_query_parsed($sql, $ignore_errors = 0, $attach_mysql = "")
  * @param string $index
  * @return string
  */
-function _drop_index($table, $index)
-{
+function _drop_index($table, $index) {
     global $CONF;
     $table = table_by_key($table);
 
@@ -373,8 +361,7 @@ function _drop_index($table, $index)
  * @param string $indexname
  * @param string $fieldlist
  */
-function _add_index($table, $indexname, $fieldlist)
-{
+function _add_index($table, $indexname, $fieldlist) {
     global $CONF;
     $table = table_by_key($table);
 
@@ -393,8 +380,7 @@ function _add_index($table, $indexname, $fieldlist)
 /**
  * @return void
  */
-function upgrade_1_mysql()
-{
+function upgrade_1_mysql() {
     #
     # creating the tables in this very old layout (pre 2.1) causes trouble if the MySQL charset is not latin1 (multibyte vs. index length)
     # therefore:
@@ -504,8 +490,7 @@ function upgrade_1_mysql()
 /**
  * @return void
  */
-function upgrade_2_mysql()
-{
+function upgrade_2_mysql() {
     #
     # updating the tables in this very old layout (pre 2.1) causes trouble if the MySQL charset is not latin1 (multibyte vs. index length)
     # therefore:
@@ -528,8 +513,7 @@ function upgrade_2_mysql()
 /**
  * @return void
  */
-function upgrade_2_pgsql()
-{
+function upgrade_2_pgsql() {
     if (!_pgsql_object_exists(table_by_key('domain'))) {
         db_query_parsed("
             CREATE TABLE " . table_by_key('domain') . " (
@@ -646,8 +630,7 @@ function upgrade_2_pgsql()
 /**
  * @return void
  */
-function upgrade_3_mysql()
-{
+function upgrade_3_mysql() {
     #
     # updating the tables in this very old layout (pre 2.1) causes trouble if the MySQL charset is not latin1 (multibyte vs. index length)
     # therefore:
@@ -723,8 +706,7 @@ function upgrade_3_mysql()
 /**
  * @return void
  */
-function upgrade_4_mysql()
-{ # MySQL only
+function upgrade_4_mysql() { # MySQL only
     # changes between 2.1 and moving to sourceforge
 
     return; // as the above _mysql functions are disabled; this one will just error for a new db.
@@ -739,8 +721,7 @@ function upgrade_4_mysql()
  * Changes between 2.1 and moving to sf.net
  * @return void
  */
-function upgrade_4_pgsql()
-{
+function upgrade_4_pgsql() {
     $table_domain = table_by_key('domain');
     $table_admin = table_by_key('admin');
     $table_alias = table_by_key('alias');
@@ -832,8 +813,7 @@ function upgrade_4_pgsql()
  * - removed creation of default superadmin
  * @return void
  */
-function upgrade_5_mysql()
-{
+function upgrade_5_mysql() {
     db_query_parsed("
         CREATE TABLE {IF_NOT_EXISTS} " . table_by_key('admin') . " (
             `username` varchar(255) NOT NULL default '',
@@ -932,8 +912,7 @@ function upgrade_5_mysql()
  * drop useless indicies (already available as primary key)
  * @return void
  */
-function upgrade_79_mysql()
-{ # MySQL only
+function upgrade_79_mysql() { # MySQL only
     db_query_parsed(_drop_index('admin', 'username'), true);
     db_query_parsed(_drop_index('alias', 'address'), true);
     db_query_parsed(_drop_index('domain', 'domain'), true);
@@ -943,8 +922,7 @@ function upgrade_79_mysql()
 /**
  * @return void
  */
-function upgrade_81_mysql()
-{ # MySQL only
+function upgrade_81_mysql() { # MySQL only
     $table_vacation = table_by_key('vacation');
     $table_vacation_notification = table_by_key('vacation_notification');
 
@@ -968,8 +946,7 @@ function upgrade_81_mysql()
  * Make logging translatable - i.e. create alias => create_alias
  * @return void
  */
-function upgrade_90_mysql_pgsql()
-{
+function upgrade_90_mysql_pgsql() {
     db_query_parsed("UPDATE " . table_by_key('log') . " SET action = REPLACE(action,' ','_')", true);
     # change edit_alias_state to edit_alias_active
     db_query_parsed("UPDATE " . table_by_key('log') . " SET action = 'edit_alias_state' WHERE action = 'edit_alias_active'", true);
@@ -979,8 +956,7 @@ function upgrade_90_mysql_pgsql()
  * MySQL only allow quota > 2 GB
  * @return void
  */
-function upgrade_169_mysql()
-{
+function upgrade_169_mysql() {
     $table_domain = table_by_key('domain');
     $table_mailbox = table_by_key('mailbox');
     db_query_parsed("ALTER TABLE $table_domain MODIFY COLUMN `quota` bigint(20) NOT NULL default '0'", true);
@@ -995,8 +971,7 @@ function upgrade_169_mysql()
  * In this case, dropping the table is the easiest solution.
  * @return void
  */
-function upgrade_318_mysql()
-{
+function upgrade_318_mysql() {
     $table_vacation_notification = table_by_key('vacation_notification');
     $table_vacation = table_by_key('vacation');
 
@@ -1031,8 +1006,7 @@ function upgrade_318_mysql()
  * Create fetchmail table
  * @return void
  */
-function upgrade_344_mysql()
-{
+function upgrade_344_mysql() {
     $table_fetchmail = table_by_key('fetchmail');
 
     db_query_parsed("
@@ -1060,8 +1034,7 @@ function upgrade_344_mysql()
 /**
  * @return void
  */
-function upgrade_344_pgsql()
-{
+function upgrade_344_pgsql() {
     $fetchmail = table_by_key('fetchmail');
     // a field name called 'date' is probably a bad idea.
     if (!_pgsql_object_exists('fetchmail')) {
@@ -1103,8 +1076,7 @@ function upgrade_344_pgsql()
  *
  * @return void
  */
-function upgrade_438_mysql()
-{
+function upgrade_438_mysql() {
     # Table structure for table alias_domain
     #
     $table_alias_domain = table_by_key('alias_domain');
@@ -1127,8 +1099,7 @@ function upgrade_438_mysql()
  * function upgrade_362_pgsql()  # renamed to _438 to make sure it runs after an upgrade from 2.2.x
  * @return void
  */
-function upgrade_438_pgsql()
-{
+function upgrade_438_pgsql() {
     # Table structure for table alias_domain
     $table_alias_domain = table_by_key('alias_domain');
     $table_domain = table_by_key('domain');
@@ -1151,8 +1122,7 @@ function upgrade_438_pgsql()
  * Change description fields to UTF-8
  * @return void
  */
-function upgrade_373_mysql()
-{ # MySQL only
+function upgrade_373_mysql() { # MySQL only
     $table_domain = table_by_key('domain');
     $table_mailbox = table_by_key('mailbox');
 
@@ -1171,8 +1141,7 @@ function upgrade_373_mysql()
  * add ssl option for fetchmail
  * @return void
  */
-function upgrade_439_mysql()
-{
+function upgrade_439_mysql() {
     $table_fetchmail = table_by_key('fetchmail');
     if (!_mysql_field_exists($table_fetchmail, 'ssl')) {
         db_query_parsed("ALTER TABLE $table_fetchmail ADD `ssl` TINYINT( 1 ) UNSIGNED NOT NULL DEFAULT '0' AFTER `protocol` ; ");
@@ -1182,8 +1151,7 @@ function upgrade_439_mysql()
 /**
  * @return void
  */
-function upgrade_439_pgsql()
-{
+function upgrade_439_pgsql() {
     $table_fetchmail = table_by_key('fetchmail');
     if (!_pgsql_field_exists($table_fetchmail, 'ssl')) {
         db_query_parsed("ALTER TABLE $table_fetchmail ADD COLUMN ssl BOOLEAN NOT NULL DEFAULT false");
@@ -1193,8 +1161,7 @@ function upgrade_439_pgsql()
 /**
  * @return  void
  */
-function upgrade_473_mysql()
-{
+function upgrade_473_mysql() {
     $table_admin   = table_by_key('admin');
     $table_alias   = table_by_key('alias');
     $table_al_dom  = table_by_key('alias_domain');
@@ -1252,8 +1219,7 @@ function upgrade_473_mysql()
 /**
  * @return  void
  */
-function upgrade_479_mysql()
-{
+function upgrade_479_mysql() {
     # ssl is a reserved word in MySQL and causes several problems. Renaming the field...
     $table_fmail   = table_by_key('fetchmail');
     if (!_mysql_field_exists($table_fmail, 'usessl')) {
@@ -1265,8 +1231,7 @@ function upgrade_479_mysql()
 /**
  * @return  void
  */
-function upgrade_479_pgsql()
-{
+function upgrade_479_pgsql() {
     $table_fmail   = table_by_key('fetchmail');
     if (!_pgsql_field_exists($table_fmail, 'usessl')) {
         db_query_parsed("alter table $table_fmail rename column ssl to usessl");
@@ -1276,8 +1241,7 @@ function upgrade_479_pgsql()
 /**
  * @return  void
  */
-function upgrade_483_mysql()
-{
+function upgrade_483_mysql() {
     $table_log   = table_by_key('log');
     db_query_parsed("ALTER TABLE $table_log CHANGE `data` `data` TEXT {LATIN1} NOT NULL");
 }
@@ -1288,8 +1252,7 @@ function upgrade_483_mysql()
  * See https://sourceforge.net/forum/message.php?msg_id=5394663
  * @return  void
  */
-function upgrade_495_pgsql()
-{
+function upgrade_495_pgsql() {
     $table_mailbox = table_by_key('mailbox');
     if (!_pgsql_field_exists($table_mailbox, 'local_part')) {
         db_query_parsed("ALTER TABLE $table_mailbox add column local_part varchar(255) ");
@@ -1301,8 +1264,7 @@ function upgrade_495_pgsql()
  * See https://sourceforge.net/forum/message.php?msg_id=5394663
  * @return void
  */
-function upgrade_495_mysql()
-{
+function upgrade_495_mysql() {
     $table_mailbox = table_by_key('mailbox');
     if (!_mysql_field_exists($table_mailbox, 'local_part')) {
         db_query_parsed("ALTER TABLE $table_mailbox add local_part varchar(255) AFTER quota"); // allow to be null
@@ -1314,8 +1276,7 @@ function upgrade_495_mysql()
 /**
  * @return void
  */
-function upgrade_504_mysql()
-{
+function upgrade_504_mysql() {
     $table_mailbox = table_by_key('mailbox');
     db_query_parsed("ALTER TABLE $table_mailbox CHANGE `local_part` `local_part` VARCHAR( 255 ) {LATIN1} NOT NULL");
 }
@@ -1323,8 +1284,7 @@ function upgrade_504_mysql()
 /**
  * @return void
  */
-function upgrade_655_mysql_pgsql()
-{
+function upgrade_655_mysql_pgsql() {
     db_query_parsed(_add_index('mailbox', 'domain', 'domain'));
     db_query_parsed(_add_index('alias', 'domain', 'domain'));
 }
@@ -1394,8 +1354,7 @@ function upgrade_727_mysql() {
 /**
  * @return void
  */
-function upgrade_729_mysql_pgsql()
-{
+function upgrade_729_mysql_pgsql() {
     $table_quota = table_by_key('quota');
     $table_quota2 = table_by_key('quota2');
 
@@ -1426,8 +1385,7 @@ function upgrade_729_mysql_pgsql()
 /**
  * @return void
  */
-function upgrade_730_pgsql()
-{
+function upgrade_730_pgsql() {
     $table_quota = table_by_key('quota');
     $table_quota2 = table_by_key('quota2');
 
@@ -1502,16 +1460,14 @@ function upgrade_730_pgsql()
 /**
  * @return void
  */
-function upgrade_945_mysql_pgsql()
-{
+function upgrade_945_mysql_pgsql() {
     _db_add_field('vacation', 'modified', '{DATECURRENT}', 'created');
 }
 
 /**
  * @return void
  */
-function upgrade_946_mysql_pgsql()
-{
+function upgrade_946_mysql_pgsql() {
     # taken from upgrade_727_mysql, needs to be done for all databases
     _db_add_field('vacation', 'activefrom', '{DATE}', 'body');
     _db_add_field('vacation', 'activeuntil', '{DATEFUTURE}', 'activefrom');
@@ -1520,8 +1476,7 @@ function upgrade_946_mysql_pgsql()
 /**
  * @return void
  */
-function upgrade_968_pgsql()
-{
+function upgrade_968_pgsql() {
     # pgsql counterpart for upgrade_169_mysql() - allow really big quota
     $table_domain = table_by_key('domain');
     $table_mailbox = table_by_key('mailbox');
@@ -1533,8 +1488,7 @@ function upgrade_968_pgsql()
 /**
  * @return void
  */
-function upgrade_1050_mysql_pgsql()
-{
+function upgrade_1050_mysql_pgsql() {
     db_query_parsed(_add_index('log', 'domain_timestamp', 'domain,timestamp'));
 }
 
@@ -1542,16 +1496,14 @@ function upgrade_1050_mysql_pgsql()
 /**
  * @return void
  */
-function upgrade_1283_mysql_pgsql()
-{
+function upgrade_1283_mysql_pgsql() {
     _db_add_field('admin', 'superadmin', '{BOOLEAN}', 'password');
 }
 
 /**
  * @return void
  */
-function upgrade_1284_mysql_pgsql()
-{
+function upgrade_1284_mysql_pgsql() {
     # migrate the ALL domain to the superadmin column
     # Note: The ALL domain is not (yet) deleted to stay backwards-compatible for now (will be done in a later upgrade function)
 
@@ -1566,8 +1518,7 @@ function upgrade_1284_mysql_pgsql()
 /**
  * @return void
  */
-function upgrade_1345_mysql()
-{
+function upgrade_1345_mysql() {
     # $table_vacation = table_by_key('vacation');
     # adding and usage of reply_type field removed in r1610
     # db_query_parsed("ALTER TABLE `$table_vacation` ADD `reply_type` VARCHAR( 20 ) NOT NULL AFTER `domain`  ");
@@ -1578,8 +1529,7 @@ function upgrade_1345_mysql()
 /**
  * @return void
  */
-function upgrade_1519_mysql_pgsql()
-{
+function upgrade_1519_mysql_pgsql() {
     _db_add_field('fetchmail', 'sslcertck', '{BOOLEAN}', 'usessl');
     _db_add_field('fetchmail', 'sslcertpath', "VARCHAR(255) {UTF-8}  DEFAULT ''", 'sslcertck');
     _db_add_field('fetchmail', 'sslfingerprint', "VARCHAR(255) {LATIN1} DEFAULT ''", 'sslcertpath');
@@ -1588,8 +1538,7 @@ function upgrade_1519_mysql_pgsql()
 /**
  * @return void
  */
-function upgrade_1610_mysql_pgsql()
-{
+function upgrade_1610_mysql_pgsql() {
     # obsoletes upgrade_1345_mysql() - which means debug mode could print "field already exists"
     _db_add_field('vacation', 'interval_time', '{INT}', 'domain');
 }
@@ -1597,8 +1546,7 @@ function upgrade_1610_mysql_pgsql()
 /**
  * @return void
  */
-function upgrade_1685_mysql()
-{
+function upgrade_1685_mysql() {
     # Fix existing log entries broken by https://sourceforge.net/p/postfixadmin/bugs/317/
     $table = table_by_key('log');
     db_query_parsed("UPDATE $table SET data = domain WHERE data = '' AND domain LIKE '%@%'");
@@ -1608,8 +1556,7 @@ function upgrade_1685_mysql()
 /**
  * @return void
  */
-function upgrade_1685_pgsql()
-{
+function upgrade_1685_pgsql() {
     $table = table_by_key('log');
     db_query_parsed("UPDATE $table SET data = domain WHERE data = '' AND domain LIKE '%@%'");
     db_query_parsed("UPDATE $table SET domain=SPLIT_PART(domain, '@', 2) WHERE domain=data;");
@@ -1618,8 +1565,7 @@ function upgrade_1685_pgsql()
 /**
  * @return void
  */
-function upgrade_1761_mysql()
-{
+function upgrade_1761_mysql() {
     # upgrade_1762 adds the 'modified' column as {DATECURRENT}, therefore we first need to change
     # 'date' to {DATE} (mysql only allows one {DATECURRENT} column per table)
     $table_fetchmail = table_by_key('fetchmail');
@@ -1629,8 +1575,7 @@ function upgrade_1761_mysql()
 /**
  * @return void
  */
-function upgrade_1762_mysql_pgsql()
-{
+function upgrade_1762_mysql_pgsql() {
     _db_add_field('fetchmail', 'domain', "VARCHAR(255) {LATIN1} DEFAULT ''", 'id');
     _db_add_field('fetchmail', 'active', '{BOOLEAN}', 'date');
     _db_add_field('fetchmail', 'created', '{DATE}', 'date');
@@ -1644,8 +1589,7 @@ function upgrade_1762_mysql_pgsql()
 /**
  * @return void
  */
-function upgrade_1763_mysql()
-{
+function upgrade_1763_mysql() {
     $table = table_by_key('fetchmail');
     db_query_parsed("UPDATE $table SET domain=SUBSTRING_INDEX(mailbox, '@', -1) WHERE domain='';");
 }
@@ -1654,8 +1598,7 @@ function upgrade_1763_mysql()
 /**
  * @return void
  */
-function upgrade_1763_pgsql()
-{
+function upgrade_1763_pgsql() {
     $table = table_by_key('fetchmail');
     db_query_parsed("UPDATE $table SET domain=SPLIT_PART(mailbox, '@', 2) WHERE domain='';");
 }
@@ -1663,8 +1606,7 @@ function upgrade_1763_pgsql()
 /**
  * @return void
  */
-function upgrade_1767_mysql_pgsql()
-{
+function upgrade_1767_mysql_pgsql() {
     # 'active' was just added, so make sure all existing jobs stay active
     $table = table_by_key('fetchmail');
     db_query_parsed("UPDATE $table SET active='{BOOL_TRUE}'");
@@ -1673,8 +1615,7 @@ function upgrade_1767_mysql_pgsql()
 /**
  * @return void
  */
-function upgrade_1795_mysql()
-{
+function upgrade_1795_mysql() {
     # upgrade_1761_mysql() was added later (in r1795) - make sure it runs for everybody
     # (running it twice doesn't hurt)
     upgrade_1761_mysql();
@@ -1683,8 +1624,7 @@ function upgrade_1795_mysql()
 /**
  * @return void
  */
-function upgrade_1824_sqlite()
-{
+function upgrade_1824_sqlite() {
     $admin_table = table_by_key('admin');
     $alias_table = table_by_key('alias');
     $alias_domain_table = table_by_key('alias_domain');
@@ -1851,8 +1791,7 @@ function upgrade_1824_sqlite()
 /**
  * @return void
  */
-function upgrade_1835_mysql()
-{
+function upgrade_1835_mysql() {
     # change default values for existing datetime fields with a 0000-00-00 default to {DATETIME}
 
     foreach (array('domain_admins', 'vacation') as $table_to_change) {
@@ -1872,8 +1811,7 @@ function upgrade_1835_mysql()
 /**
  * @return void
  */
-function upgrade_1836_mysql()
-{
+function upgrade_1836_mysql() {
     $table_alias_domain = table_by_key('alias_domain');
     $table_vacation_notification = table_by_key('vacation_notification');
 
@@ -1891,8 +1829,7 @@ function upgrade_1836_mysql()
 /**
  * @return void
  */
-function upgrade_1837()
-{
+function upgrade_1837() {
     if (db_sqlite()) {
         return;
     }
@@ -1904,7 +1841,6 @@ function upgrade_1837()
         _db_add_field($table, 'token_validity', '{DATETIME}', 'token');
     }
 }
-
 # TODO MySQL:
 # - various varchar fields do not have a default value
 #   https://sourceforge.net/projects/postfixadmin/forums/forum/676076/topic/3419725
@@ -1923,8 +1859,7 @@ function upgrade_1837()
 /**
  * @return void
  */
-function upgrade_1837_sqlite()
-{
+function upgrade_1837_sqlite() {
     # Add columns for the alternative contact to reset a forgotten password.
     foreach (array('admin', 'mailbox') as $table_to_change) {
         $table = table_by_key($table_to_change);
@@ -1942,8 +1877,7 @@ function upgrade_1837_sqlite()
  * upgrade_1838_mysql() renamed to upgrade_1839() to keep all databases in sync
  * @return void
  */
-function upgrade_1839()
-{
+function upgrade_1839() {
     if (!db_sqlite()) {
         _db_add_field('log', 'id', '{AUTOINCREMENT} {PRIMARY}', 'data');
         return;
@@ -1968,8 +1902,7 @@ function upgrade_1839()
 /**
  * @return void
  */
-function upgrade_1840_mysql_pgsql()
-{
+function upgrade_1840_mysql_pgsql() {
     # sqlite doesn't support changing the default value
     $vacation = table_by_key('vacation');
     db_query_parsed("ALTER TABLE $vacation ALTER COLUMN activeuntil SET DEFAULT '2038-01-18'");
@@ -1979,8 +1912,7 @@ function upgrade_1840_mysql_pgsql()
  * try and fix: https://github.com/postfixadmin/postfixadmin/issues/177 - sqlite missing columns
  * @return void
  */
-function upgrade_1841_sqlite()
-{
+function upgrade_1841_sqlite() {
     foreach (array('admin', 'mailbox') as $table) {
         _db_add_field($table, 'phone', "varchar(30) {UTF-8} NOT NULL DEFAULT ''", 'active');
         _db_add_field($table, 'email_other', "varchar(255) {UTF-8} NOT NULL DEFAULT ''", 'phone');
@@ -1992,8 +1924,7 @@ function upgrade_1841_sqlite()
 /**
  * @return void
  */
-function upgrade_1842()
-{
+function upgrade_1842() {
     $domain = table_by_key('domain');
 
     // See: https://github.com/postfixadmin/postfixadmin/issues/489
@@ -2001,6 +1932,7 @@ function upgrade_1842()
     if (db_mysql()) {
         db_execute("UPDATE $domain SET created='2000-01-01 00:00:00', modified='2000-01-01 00:00:00' WHERE domain='ALL'", [], true);
     }
+
     _db_add_field('mailbox', 'password_expiry', "{DATETIME}"); // when a specific mailbox password expires
     _db_add_field('domain',  'password_expiry', 'int DEFAULT 0'); // expiry applied to mailboxes within that domain
 }
@@ -2008,8 +1940,7 @@ function upgrade_1842()
 /**
  * @return void
  */
-function upgrade_1843()
-{
+function upgrade_1843() {
     # Additional field for fetchmail to allow server with non-standard port number
     _db_add_field('fetchmail', 'src_port', "{INT}", 'src_server');
 }
@@ -2018,8 +1949,7 @@ function upgrade_1843()
 /**
  * @return void
  */
-function upgrade_1844()
-{
+function upgrade_1844() {
     # See:https://github.com/postfixadmin/postfixadmin/issues/475 - add pkey to domain_admins.
 
     if (db_sqlite()) {
@@ -2029,8 +1959,7 @@ function upgrade_1844()
     _db_add_field('domain_admins', 'id', '{AUTOINCREMENT} {PRIMARY}');
 }
 
-function upgrade_1845()
-{
+function upgrade_1845() {
     # See: https://github.com/postfixadmin/postfixadmin/pull/484
     #
     if (!db_mysql()) {
@@ -2044,219 +1973,47 @@ function upgrade_1845()
     db_query("alter table $mailbox change name name varchar(255) charset utf8mb4 not null");
 }
 
-
-function upgrade_1846_mysql()
-{
+function upgrade_1846_mysql() {
     # See https://github.com/postfixadmin/postfixadmin/issues/327
 
     $alias = table_by_key('alias');
-    $admin = table_by_key('admin');
     $domain = table_by_key('domain');
-    $fetchmail = table_by_key('fetchmail');
     $mailbox = table_by_key('mailbox');
-    $quota2 = table_by_key('quota2');
-    $quota = table_by_key('quota');
-    $log = table_by_key('log');
     $vacation = table_by_key('vacation');
     $vacation_notification = table_by_key('vacation_notification');
     $alias_domain = table_by_key('alias_domain');
     $domain_admins = table_by_key('domain_admins');
 
-    // ALTER DATABASE postfix DEFAULT COLLATE latin1_general_ci;
-
-    db_query("alter table $admin collate latin1_general_ci");
-    db_query("alter table $alias collate latin1_general_ci");
-    db_query("alter table $alias_domain collate latin1_general_ci");
-
-    db_query("alter table $domain collate latin1_general_ci");
-    db_query("alter table $domain_admins collate latin1_general_ci");
-    db_query("alter table $log collate latin1_general_ci");
-    db_query("alter table $mailbox collate latin1_general_ci");
-    db_query("alter table $quota collate latin1_general_ci");
-    db_query("alter table $quota2 collate latin1_general_ci");
-
-
-    db_query("ALTER TABLE $admin MODIFY username varchar(255) COLLATE latin1_general_ci NOT NULL");
-    db_query("ALTER TABLE $admin MODIFY password varchar(255) COLLATE latin1_general_ci NOT NULL");
-
     db_query("ALTER TABLE $alias MODIFY address varchar(255)  COLLATE latin1_general_ci NOT NULL");
     db_query("ALTER TABLE $alias MODIFY goto text  COLLATE latin1_general_ci NOT NULL");
     db_query("ALTER TABLE $alias MODIFY domain varchar(255)  COLLATE latin1_general_ci NOT NULL");
-
     db_query("ALTER TABLE $domain MODIFY domain varchar(255)  COLLATE latin1_general_ci NOT NULL");
     db_query("ALTER TABLE $domain MODIFY transport varchar(255)  COLLATE latin1_general_ci NOT NULL");
-
-    db_query("ALTER TABLE $fetchmail MODIFY domain varchar(255) COLLATE latin1_general_ci DEFAULT ''");
-    db_query("ALTER TABLE $fetchmail MODIFY mailbox varchar(255) COLLATE latin1_general_ci NOT NULL");
-    db_query("ALTER TABLE $fetchmail MODIFY src_server varchar(255) COLLATE latin1_general_ci NOT NULL");
-    db_query("ALTER TABLE $fetchmail MODIFY src_auth enum('password','kerberos_v5','kerberos','kerberos_v4','gssapi','cram-md5','otp','ntlm','msn','ssh','any') COLLATE latin1_general_ci DEFAULT NULL");
-    db_query("ALTER TABLE $fetchmail MODIFY src_user varchar(255) COLLATE latin1_general_ci NOT NULL");
-    db_query("ALTER TABLE $fetchmail MODIFY src_password varchar(255) COLLATE latin1_general_ci NOT NULL");
-    db_query("ALTER TABLE $fetchmail MODIFY src_folder varchar(255) COLLATE latin1_general_ci NOT NULL");
-    db_Query("ALTER TABLE $fetchmail MODIFY protocol enum('POP3','IMAP','POP2','ETRN','AUTO') COLLATE latin1_general_ci DEFAULT NULL");
-    db_query("ALTER TABLE $fetchmail MODIFY sslfingerprint varchar(255) COLLATE latin1_general_ci DEFAULT ''");
-    db_query("ALTER TABLE $fetchmail MODIFY extra_options text COLLATE latin1_general_ci DEFAULT NULL");
-    db_query("ALTER TABLE $fetchmail MODIFY returned_text text COLLATE latin1_general_ci DEFAULT NULL");
-    db_query("ALTER TABLE $fetchmail MODIFY mda varchar(255) COLLATE latin1_general_ci");
-
     db_query("ALTER TABLE $mailbox MODIFY username varchar(255)  COLLATE latin1_general_ci NOT NULL");
     db_query("ALTER TABLE $mailbox MODIFY password varchar(255)  COLLATE latin1_general_ci NOT NULL");
     db_query("ALTER TABLE $mailbox MODIFY maildir varchar(255)  COLLATE latin1_general_ci NOT NULL");
     db_query("ALTER TABLE $mailbox MODIFY local_part varchar(255)  COLLATE latin1_general_ci NOT NULL");
     db_query("ALTER TABLE $mailbox MODIFY domain varchar(255)  COLLATE latin1_general_ci NOT NULL");
-
-    db_query("ALTER TABLE $quota MODIFY username varchar(255) COLLATE latin1_general_ci NOT NULL");
-    db_query("ALTER TABLE $quota MODIFY path varchar(100) COLLATE latin1_general_ci NOT NULL");
-    db_query("ALTER TABLE $quota2 MODIFY username varchar(100) COLLATE latin1_general_ci NOT NULL");
-
     db_query("ALTER TABLE $vacation_notification DROP FOREIGN KEY vacation_notification_pkey");
-
     db_query("ALTER TABLE $vacation MODIFY domain varchar(255)  COLLATE latin1_general_ci NOT NULL");
     db_query("ALTER TABLE $vacation MODIFY email varchar(255)  COLLATE latin1_general_ci NOT NULL");
-    db_query("ALTER TABLE $vacation MODIFY cache text COLLATE latin1_general_ci NOT NULL");
-
-    db_query("ALTER TABLE $log MODIFY username varchar(255) COLLATE latin1_general_ci NOT NULL");
-    db_query("ALTER TABLE $log MODIFY domain varchar(255) COLLATE latin1_general_ci NOT NULL");
-    db_query("ALTER TABLE $log MODIFY action varchar(255) COLLATE latin1_general_ci NOT NULL");
-    db_Query("ALTER TABLE $log MODIFY data text COLLATE latin1_general_ci NOT NULL");
-
     db_query("ALTER TABLE $alias_domain MODIFY alias_domain varchar(255)  COLLATE latin1_general_ci NOT NULL DEFAULT ''");
     db_query("ALTER TABLE $alias_domain MODIFY target_domain varchar(255)  COLLATE latin1_general_ci NOT NULL DEFAULT ''");
 
     db_query("ALTER TABLE $vacation_notification MODIFY on_vacation VARCHAR(255) COLLATE latin1_general_ci NOT NULL");
-    db_query("ALTER TABLE $vacation_notification MODIFY notified VARCHAR(255) COLLATE latin1_general_ci NOT NULL DEFAULT ''");
-
-
     db_query("ALTER TABLE $vacation_notification ADD CONSTRAINT vacation_notification_pkey FOREIGN KEY (`on_vacation`) REFERENCES $vacation(email) ON DELETE CASCADE");
 
     db_query("ALTER TABLE $domain_admins MODIFY `domain` varchar(255) COLLATE latin1_general_ci NOT NULL");
-    db_query("ALTER TABLE $domain_admins MODIFY username varchar(255) COLLATE latin1_general_ci NOT NULL");
 }
 
-function upgrade_1847()
-{
-    // no op, function exists in the postfixadmin_3.3 branch doing some collation fixes.
-}
+function upgrade_1847_mysql() {
+    # See https://github.com/postfixadmin/postfixadmin/issues/327
+    # See https://github.com/postfixadmin/postfixadmin/issues/690
+    #
+    #
 
-/**
- * Add DKIM tables
- * @return void
- */
-function upgrade_1848_mysql()
-{
-    $dkim_key_table = table_by_key('dkim');
-    $dkim_signing_table = table_by_key('dkim_signing');
-    $domain_table = table_by_key('domain');
-
-    db_query_parsed("
-        CREATE TABLE {IF_NOT_EXISTS} $dkim_key_table (
-        `id` {AUTOINCREMENT} {PRIMARY},
-        `domain_name` varchar(255) NOT NULL,
-        `description` varchar(255) DEFAULT '',
-        `selector` varchar(63) NOT NULL DEFAULT 'default',
-        `private_key` text,
-        `public_key` text,
-        `created` {DATETIME},
-        `modified` {DATETIME},
-        INDEX(domain_name, description),
-        FOREIGN KEY (`domain_name`) 
-            REFERENCES $domain_table(`domain`)
-            ON DELETE CASCADE) {COLLATE} COMMENT='Postfix Admin - OpenDKIM Key Table';
-    ");
-
-    db_query_parsed("
-        CREATE TABLE {IF_NOT_EXISTS} $dkim_signing_table (
-        `id` {AUTOINCREMENT} {PRIMARY},
-        `author` varchar(255) NOT NULL DEFAULT '',
-        `dkim_id` integer NOT NULL,
-        `created` {DATETIME},
-        `modified` {DATETIME},
-        INDEX(author),
-        FOREIGN KEY (`dkim_id`) 
-            REFERENCES $dkim_key_table(`id`)
-            ON DELETE CASCADE) {COLLATE} COMMENT='Postfix Admin - OpenDKIM Signing Table';
-    ");
-}
-
-/**
- * Add DKIM tables
- * @return void
- */
-function upgrade_1848_pgsql()
-{
-    $dkim_key_table = table_by_key('dkim');
-    $dkim_signing_table = table_by_key('dkim_signing');
-    $domain_table = table_by_key('domain');
-
-    if (_pgsql_object_exists($dkim_key_table)) {
-        return;
+    foreach (['quota','quota2'] as $table) {
+        $table = table_by_key($table);
+        db_query("ALTER TABLE $table MODIFY username varchar(255)  COLLATE latin1_general_ci NOT NULL");
     }
-    db_query_parsed("
-        CREATE TABLE {IF_NOT_EXISTS} $dkim_key_table (
-        id {AUTOINCREMENT} {PRIMARY},
-        domain_name varchar(255) NOT NULL,
-        description varchar(255) DEFAULT '',
-        selector varchar(63) NOT NULL DEFAULT 'default',
-        private_key text,
-        public_key text,
-        created {DATETIME},
-        modified {DATETIME},
-        FOREIGN KEY (domain_name) 
-            REFERENCES $domain_table(domain)
-            ON DELETE CASCADE) {COLLATE} ;
-    ");
-
-    db_query_parsed("CREATE INDEX domain_desc_idx ON $dkim_key_table(domain_name, description)");
-
-    db_query_parsed("
-        CREATE TABLE {IF_NOT_EXISTS} $dkim_signing_table (
-        id {AUTOINCREMENT} {PRIMARY},
-        author varchar(255) NOT NULL DEFAULT '',
-        dkim_id integer NOT NULL,
-        created {DATETIME},
-        modified  {DATETIME},
-        FOREIGN KEY (dkim_id) 
-            REFERENCES $dkim_key_table(id)
-            ON DELETE CASCADE) {COLLATE} ;
-    ");
-
-    db_query_parsed("CREATE INDEX author_idx ON $dkim_signing_table(author)");
-}
-
-/**
- * Add DKIM tables
- * @return void
- */
-function upgrade_1848_sqlite()
-{
-    $dkim_key_table = table_by_key('dkim');
-    $dkim_signing_table = table_by_key('dkim_signing');
-    $domain_table = table_by_key('domain');
-
-    db_query_parsed("
-        CREATE TABLE {IF_NOT_EXISTS} $dkim_key_table (
-        `id` {AUTOINCREMENT},
-        `domain_name` varchar(255) NOT NULL,
-        `description` varchar(255) DEFAULT '',
-        `selector` varchar(63) NOT NULL DEFAULT 'default',
-        `private_key` text,
-        `public_key` text,
-        `created` {DATETIME},
-        `modified` {DATETIME},
-        FOREIGN KEY (`domain_name`) 
-            REFERENCES $domain_table(`domain`)
-            ON DELETE CASCADE) {COLLATE};
-    ");
-
-    db_query_parsed("
-        CREATE TABLE {IF_NOT_EXISTS} $dkim_signing_table (
-        `id` {AUTOINCREMENT},
-        `author` varchar(255) NOT NULL DEFAULT '',
-        `dkim_id` integer NOT NULL,
-        `created` {DATETIME},
-        `modified` {DATETIME},
-        FOREIGN KEY (`dkim_id`) 
-            REFERENCES $dkim_key_table(`id`)
-            ON DELETE CASCADE) {COLLATE};
-    ");
 }

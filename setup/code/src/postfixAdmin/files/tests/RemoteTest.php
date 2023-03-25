@@ -1,7 +1,6 @@
 <?php
 
-abstract class RemoteTest extends \PHPUnit\Framework\TestCase
-{
+abstract class RemoteTest extends \PHPUnit\Framework\TestCase {
     protected $server_url = 'http://change.me/to/work'; // http://orange/david/postfixadmin/xmlrpc.php';
     protected $username = 'user@example.com';
     protected $password = 'password1';
@@ -13,8 +12,7 @@ abstract class RemoteTest extends \PHPUnit\Framework\TestCase
 
     protected $xmlrpc_client;
 
-    public function setUp(): void
-    {
+    public function setUp(): void {
         parent::setUp();
 
         if ($this->server_url == 'http://change.me/to/work') {

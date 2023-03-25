@@ -6,19 +6,16 @@
  */
 
 
-function do_header()
-{
+function do_header() {
     global $color;
     displayPageHeader($color, 'None');
 }
 
-function do_footer()
-{
+function do_footer() {
     echo "</body></html>";
 }
 
-function _display_password_form()
-{
+function _display_password_form() {
     bindtextdomain('postfixadmin', SM_PATH . 'plugins/postfixadmin/locale');
     textdomain('postfixadmin');
     do_header('Postfixadmin Squirrelmail - Login');
@@ -34,8 +31,7 @@ function _display_password_form()
 /**
  * This returns a Zend_XmlRpc_Client instance - unless we can't log you in...
  */
-function get_xmlrpc()
-{
+function get_xmlrpc() {
     global $CONF;
     require_once('Zend/XmlRpc/Client.php');
     $client = new Zend_XmlRpc_Client($CONF['xmlrpc_url']);
@@ -77,8 +73,7 @@ function get_xmlrpc()
     return $client;
 }
 
-function include_if_exists($filename)
-{
+function include_if_exists($filename) {
     if (file_exists($filename)) {
         include_once($filename);
     }
@@ -92,8 +87,7 @@ $optmode = 'display';
 // Action: Checks if email is valid and returns TRUE if this is the case.
 // Call: check_email (string email)
 //
-function check_email($email)
-{
+function check_email($email) {
     $return = filter_var($email, FILTER_VALIDATE_EMAIL);
     if ($return === false) {
         return false;

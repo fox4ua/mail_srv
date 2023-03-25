@@ -9,12 +9,13 @@ $finder = PhpCsFixer\Finder::create()
     ->files()->notName('config.inc.php')->notName('config.local.php')
     ->in(__DIR__);
 
-$config = new PhpCsFixer\Config();
-
-return $config
+return (new PhpCsFixer\Config())
     ->setFinder($finder)
     ->setRules(array(
         '@PSR12' => true,
+        'braces' => array(
+            'position_after_functions_and_oop_constructs' => 'same',
+        ),
         'method_argument_space' => false,           # don't break formatting in initStruct()
         'no_spaces_inside_parenthesis' => false,    # don't break formatting in initStruct()
     ));

@@ -3,16 +3,14 @@
 /**
  * Turn on sanitisation of all data by default so it's not possible for XSS flaws to occur in PFA
  */
-class PFASmarty
-{
+class PFASmarty {
     public static $instance = null;
     /**
      * @var Smarty
      */
     protected $template;
 
-    public static function getInstance()
-    {
+    public static function getInstance() {
         if (self::$instance) {
             return self::$instance;
         }
@@ -22,8 +20,7 @@ class PFASmarty
     }
 
 
-    private function __construct()
-    {
+    private function __construct() {
         $CONF = Config::getInstance()->getAll();
 
         $theme = '';
@@ -59,8 +56,7 @@ class PFASmarty
     /**
      * @param string $rel_path - relative path for referenced css etc dependencies - e.g. users/edit.php needs '../' else, it's ''.
      */
-    public function configureTheme(string $rel_path = '')
-    {
+    public function configureTheme(string $rel_path = '') {
         $CONF = Config::getInstance()->getAll();
 
         // see: https://github.com/postfixadmin/postfixadmin/issues/410
@@ -90,8 +86,7 @@ class PFASmarty
      * @param mixed $value
      * @param bool $sanitise
      */
-    public function assign($key, $value, $sanitise = true)
-    {
+    public function assign($key, $value, $sanitise = true) {
         $this->template->assign("RAW_$key", $value);
         if ($sanitise == false) {
             return $this->template->assign($key, $value);
@@ -105,16 +100,13 @@ class PFASmarty
      * @param string $template
      * @return void
      */
-    public function display($template)
-    {
+    public function display($template) {
         $CONF = Config::getInstance()->getAll();
 
         $this->assign('PALANG', $CONF['__LANG'] ?? []);
         $this->assign('url_domain', '');
         $this->assign('version', $CONF['version'] ?? 'unknown');
         $this->assign('boolconf_alias_domain', Config::bool('alias_domain'));
-        $this->assign('boolconf_dkim', Config::bool('dkim'));
-        $this->assign('boolconf_dkim_all_admins', Config::bool('dkim_all_admins'));
         $this->assign('authentication_has_role', array('global_admin' => authentication_has_role('global-admin'), 'admin' => authentication_has_role('admin'), 'user' => authentication_has_role('user')));
 
         header("Expires: Sun, 16 Mar 2003 05:00:00 GMT");
@@ -136,13 +128,12 @@ class PFASmarty
      * @param mixed $data - array or primitive type; objects not supported.
      * @return mixed $data
      * */
-    public function sanitise($data)
-    {
-        if (!is_array($data) && !is_string($data)) {
-            return $data; // bool, int, null, object etc - can't sanitise.
+    public function sanitise($data) {
+        if (is_object($data) || is_null($data)) {
+            return $data; // can't handle
         }
 
-        if (is_string($data)) {
+        if (!is_array($data)) {
             return htmlentities($data, ENT_QUOTES, 'UTF-8', false);
         }
 

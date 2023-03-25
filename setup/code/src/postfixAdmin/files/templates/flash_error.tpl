@@ -1,4 +1,5 @@
 <!-- {$smarty.template} -->
+<br clear="all"/><br/>
 {strip}
     {if isset($smarty.session.flash)}
         {if isset($smarty.session.flash.info)}

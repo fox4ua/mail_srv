@@ -1,9 +1,7 @@
 <?php
 
-class FetchmailHandlerTest extends \PHPUnit\Framework\TestCase
-{
-    public function testBasic()
-    {
+class FetchmailHandlerTest extends \PHPUnit\Framework\TestCase {
+    public function testBasic() {
         $x = new FetchmailHandler();
 
         $list = $x->getList("");

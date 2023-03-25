@@ -14,11 +14,7 @@
  * File: list-virtual.php
  * List virtual users for a domain.
  *
- * Template File:
- *		  list-virutal.tpl
- *                list-virtual-alias.tpl                which incl list-virtual.tpl
- *                list-virtual-alias_domains.tpl        which incl list-virtual.tpl
- *                list-virtual_mailbox.tpl
+ * Template File: list-virtual.php
  *
  * Form POST \ GET Variables:
  *
@@ -352,14 +348,13 @@ for ($i = 0; $i < sizeof($tMailbox); $i++) {
 
 
 
-class cNav_bar
-{
+class cNav_bar {
     protected $count;
     protected $title;
     protected $limit;
     protected $page_size;
     protected $pages;
-    protected $search; // arguments
+    protected $search; //* arguments
 
     /* @var string - appended to page link href */
     public $append_to_url = '';
@@ -367,11 +362,10 @@ class cNav_bar
     protected $have_run_init = false;
     protected $arr_prev;
     protected $arr_next;
-    protected $arr_top; // internal
+    protected $arr_top; //* internal
     protected $anchor;
 
-    public function __construct($aTitle, $aLimit, $aPage_size, $aPages, $aSearch)
-    {
+    public function __construct($aTitle, $aLimit, $aPage_size, $aPages, $aSearch) {
         $this->count = count($aPages);
         $this->title = $aTitle;
         $this->limit = $aLimit;
@@ -384,8 +378,7 @@ class cNav_bar
         }
     }
 
-    private function init()
-    {
+    private function init() {
         $this->anchor = 'a'.substr($this->title, 3);
         $this->append_to_url .= '#'.$this->anchor;
         ($this->limit >= $this->page_size) ? $this->arr_prev = '&nbsp;<a href="?limit='.($this->limit - $this->page_size).$this->search.$this->append_to_url.'"><img border="0" src="images/arrow-l.png" title="'.$GLOBALS ['PALANG']['pOverview_left_arrow'].'" alt="'.$GLOBALS ['PALANG']['pOverview_left_arrow'].'"/></a>&nbsp;' : $this->arr_prev = '';
@@ -394,8 +387,7 @@ class cNav_bar
         $this->have_run_init = true;
     }
 
-    private function display_pre()
-    {
+    private function display_pre() {
         $ret_val = '<div class="nav_bar"';
         //$ret_val .= ' style="background-color:#ffa;"';
         $ret_val .= '>';
@@ -404,14 +396,12 @@ class cNav_bar
         return $ret_val;
     }
 
-    private function display_post()
-    {
+    private function display_post() {
         $ret_val = '</td></tr></table></div>';
         return $ret_val;
     }
 
-    public function display_top()
-    {
+    public function display_top() {
         $ret_val = '';
         if ($this->count < 1) {
             return $ret_val;
@@ -448,8 +438,7 @@ class cNav_bar
         return $ret_val;
     }
 
-    public function display_bottom()
-    {
+    public function display_bottom() {
         $ret_val = '';
         if ($this->count < 1) {
             return $ret_val;
@@ -528,8 +517,7 @@ $smarty->assign('tab', $_SESSION ['tab']);
 $smarty->assign('smarty_template', 'list-virtual');
 $smarty->display('index.tpl');
 
-function eval_size($aSize)
-{
+function eval_size($aSize) {
     if ($aSize == 0) {
         $ret_val = Config::Lang('pOverview_unlimited');
     } elseif ($aSize < 0) {

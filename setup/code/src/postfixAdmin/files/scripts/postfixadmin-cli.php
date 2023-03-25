@@ -33,8 +33,7 @@
  */
 
 
-class PostfixAdmin
-{
+class PostfixAdmin {
     /**
      * Version
      *
@@ -110,8 +109,7 @@ class PostfixAdmin
      *
      * @param array $args the argv.
      */
-    public function __construct($args = array())
-    {
+    public function __construct($args = array()) {
         set_time_limit(0);
         $this->__initConstants();
         $this->parseParams($args);
@@ -121,8 +119,7 @@ class PostfixAdmin
     /**
      * Defines core configuration.
      */
-    private function __initConstants()
-    {
+    private function __initConstants() {
         ini_set('display_errors', '1');
         ini_set('error_reporting', '' . E_ALL);
         ini_set('html_errors', "0");
@@ -133,8 +130,7 @@ class PostfixAdmin
     /**
      * Defines current working environment.
      */
-    private function __initEnvironment()
-    {
+    private function __initEnvironment() {
         $this->stdin  = fopen('php://stdin', 'r');
         $this->stdout = fopen('php://stdout', 'w');
         $this->stderr = fopen('php://stderr', 'w');
@@ -155,8 +151,7 @@ class PostfixAdmin
      *              - and then a CliView object (Shell class)
      *              - call CliView->view() ... which under the covers uses AdminHandler*
      */
-    public function dispatch()
-    {
+    public function dispatch() {
         check_db_version(); # ensure the database layout is up to date
 
         if (!isset($this->args[0])) {
@@ -268,8 +263,7 @@ class PostfixAdmin
      * @param string $default Default input value.
      * @return string Either the default value, or the user-provided input.
      */
-    public function getInput($prompt, $options = null, $default = null)
-    {
+    public function getInput($prompt, $options = null, $default = null) {
         if (!is_array($options)) {
             $print_options = '';
         } else {
@@ -300,8 +294,7 @@ class PostfixAdmin
      * @param string $string String to output.
      * @param boolean $newline If true, the outputs gets an added newline.
      */
-    public function stdout($string, $newline = true)
-    {
+    public function stdout($string, $newline = true) {
         if ($newline) {
             fwrite($this->stdout, $string . "\n");
         } else {
@@ -314,8 +307,7 @@ class PostfixAdmin
      *
      * @param string $string Error text to output.
      */
-    public function stderr($string)
-    {
+    public function stderr($string) {
         fwrite($this->stderr, 'Error: '. $string . "\n");
     }
 
@@ -324,8 +316,7 @@ class PostfixAdmin
      *
      * @param array $params Parameters to parse
      */
-    public function parseParams($params)
-    {
+    public function parseParams($params) {
         $count = count($params);
         for ($i = 0; $i < $count; $i++) {
             if ($params[$i] != '' && $params[$i][0] === '-' && $params[$i] != '-1') {
@@ -350,8 +341,7 @@ class PostfixAdmin
      *
      * @return boolean False if there are no arguments
      */
-    public function shiftArgs()
-    {
+    public function shiftArgs() {
         if (empty($this->args)) {
             return false;
         }
@@ -363,8 +353,7 @@ class PostfixAdmin
     /**
      * prints help message and exits.
      */
-    public function help()
-    {
+    public function help() {
         $this->stdout("\nWelcome to Postfixadmin-CLI v" . $this->version);
         $this->stdout("---------------------------------------------------------------");
         $this->stdout("Usage:");

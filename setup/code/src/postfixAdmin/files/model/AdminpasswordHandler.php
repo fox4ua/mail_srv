@@ -2,27 +2,23 @@
 
 # $Id$
 
-class AdminpasswordHandler extends PFAHandler
-{
+class AdminpasswordHandler extends PFAHandler {
     protected $db_table = 'admin';
     protected $id_field = 'username';
 
     # do not skip empty password fields
     protected $skip_empty_pass = false;
 
-    protected function no_domain_field()
-    {
+    protected function no_domain_field() {
         return true;
     }
 
-    protected function validate_new_id()
-    {
+    protected function validate_new_id() {
         return true;
     }
 
     # init $this->struct, $this->db_table and $this->id_field
-    protected function initStruct()
-    {
+    protected function initStruct() {
         # TODO: shorter PALANG labels ;-)
 
         $this->struct=array(
@@ -40,8 +36,7 @@ class AdminpasswordHandler extends PFAHandler
         );
     }
 
-    public function init(string $id): bool
-    {
+    public function init(string $id): bool {
         # hardcode to logged in admin
         if ($this->admin_username == '') {
             die("No admin logged in");
@@ -56,8 +51,7 @@ class AdminpasswordHandler extends PFAHandler
         return parent::init($this->id);
     }
 
-    public function initMsg()
-    {
+    public function initMsg() {
         $this->msg['error_already_exists'] = 'admin_already_exists'; # probably unused
         $this->msg['error_does_not_exist'] = 'admin_does_not_exist'; # probably unused
         $this->msg['confirm_delete'] = 'confirm_delete_admin'; # probably unused
@@ -67,8 +61,7 @@ class AdminpasswordHandler extends PFAHandler
         $this->msg['successmessage'] = 'pPassword_result_success';
     }
 
-    public function webformConfig()
-    {
+    public function webformConfig() {
         return array(
             # $PALANG labels
             'formtitle_create' => 'pPassword_welcome',
@@ -87,8 +80,7 @@ class AdminpasswordHandler extends PFAHandler
     /**
      * check if old password is correct
      */
-    protected function _validate_oldpass($field, $val)
-    {
+    protected function _validate_oldpass($field, $val) {
         $l = new Login('admin');
         if ($l->login($this->id, $val)) {
             return true;
@@ -101,8 +93,7 @@ class AdminpasswordHandler extends PFAHandler
     /**
      * skip default validation (check if password is good enough) for old password
      */
-    protected function _inp_pass($field, $val)
-    {
+    protected function _inp_pass($field, $val) {
         if ($field == 'oldpass') {
             return true;
         }
@@ -114,8 +105,7 @@ class AdminpasswordHandler extends PFAHandler
      * compare password / password2 field
      * error message will be displayed at the password2 field
      */
-    protected function _validate_password2($field, $val)
-    {
+    protected function _validate_password2($field, $val) {
         return $this->compare_password_fields('password', 'password2');
     }
 }

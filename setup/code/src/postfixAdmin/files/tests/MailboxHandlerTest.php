@@ -1,9 +1,7 @@
 <?php
 
-class MailboxHandlerTest extends \PHPUnit\Framework\TestCase
-{
-    public function tearDown(): void
-    {
+class MailboxHandlerTest extends \PHPUnit\Framework\TestCase {
+    public function tearDown(): void {
         db_query('DELETE FROM mailbox');
         db_query('DELETE FROM alias');
         db_query('DELETE FROM domain_admins');
@@ -12,16 +10,14 @@ class MailboxHandlerTest extends \PHPUnit\Framework\TestCase
         parent::tearDown();
     }
 
-    public function setUp(): void
-    {
+    public function setUp(): void {
         global $CONF;
         parent::setUp();
 
         $CONF['quota'] = 'YES';
     }
 
-    public function testBasic()
-    {
+    public function testBasic() {
         $x = new MailboxHandler();
 
         $list = $x->getList("");
@@ -34,8 +30,7 @@ class MailboxHandlerTest extends \PHPUnit\Framework\TestCase
     }
 
 
-    public function testAddingDataEtc()
-    {
+    public function testAddingDataEtc() {
 
         // Fake being an admin.
         $_SESSION = [

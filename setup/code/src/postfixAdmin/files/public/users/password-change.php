@@ -36,16 +36,13 @@ if (preg_match('/\/users\//', $_SERVER['REQUEST_URI'])) {
 require_once($rel_path . 'common.php');
 
 $smarty = PFASmarty::getInstance();
+
 $CONF = Config::getInstance()->getAll();
 
 $smarty->configureTheme($rel_path);
 
-if ($context === 'admin' && !Config::read('forgotten_admin_password_reset')) {
-    die('Password change is disabled by configuration option: forgotten_admin_password_reset or mailbox_postpassword_script');
-}
-
-if ($context === 'users' && (!Config::read('forgotten_user_password_reset') || Config::read('mailbox_postpassword_script'))) {
-    die('Password change is disabled by configuration option: forgotten_user_password_reset or mailbox_postpassword_script');
+if ($context === 'admin' && !Config::read('forgotten_admin_password_reset') || $context === 'users' && !Config::read('forgotten_user_password_reset')) {
+    die('Password reset is disabled by configuration option: forgotten_admin_password_reset');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {

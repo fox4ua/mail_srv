@@ -81,7 +81,6 @@ if (strlen($configSetupPassword) == 73 && strpos($configSetupPassword, ':') == 3
         if (password_verify(safepost('setup_password', 'invalid'), $configSetupPassword)) {
             $authenticated = true;
         } else {
-            error_log("PostfixAdmin setup login failed (ip_address: {$_SERVER['REMOTE_ADDR']})");
             $errors['setup_login_password'] = "Password verification failed.";
         }
     }
@@ -120,16 +119,16 @@ $tick = ' ✅ ';
                     } else {
                         echo $todo . " You need to have a setup_pasword hash configured in a <code>config.local.php</code> file";
                     }
-?>
+                    ?>
                 </li>
                 <li>
                     <?php
-if ($authenticated) {
-    echo $tick . " You are logged in with the setup_password, some environment and hosting checks are displayed below.";
-} else {
-    echo $todo . " You need to authenticate using the setup_password before you can perform some environment and hosting checks.";
-}
-?>
+                    if ($authenticated) {
+                        echo $tick . " You are logged in with the setup_password, some environment and hosting checks are displayed below.";
+                    } else {
+                        echo $todo . " You need to authenticate using the setup_password before you can perform some environment and hosting checks.";
+                    }
+                    ?>
                 </li>
             </ul>
 
@@ -290,42 +289,41 @@ EOF;
             <?php
             $check = do_software_environment_check();
 
-if ($authenticated) {
-    if (!empty($check['info'])) {
-        echo "<h3>Information</h3><ul>";
-        foreach ($check['info'] as $msg) {
-            echo "<li>{$tick} {$msg}</li>";
-        }
-        echo "</ul>";
-    }
+            if ($authenticated) {
+                if (!empty($check['info'])) {
+                    echo "<h3>Information</h3><ul>";
+                    foreach ($check['info'] as $msg) {
+                        echo "<li>{$tick} {$msg}</li>";
+                    }
+                    echo "</ul>";
+                }
 
-    if (!empty($check['warn'])) {
-        echo "<h3>Warnings</h3><ul>";
-        foreach ($check['warn'] as $msg) {
-            echo "<li class='text-warning'>⚠ {$msg}</li>";
-        }
-        echo "</ul>";
-    }
-    if (!empty($check['error'])) {
-        echo "<h3>Errors (MUST be fixed)</h3><ul>";
-        foreach ($check['error'] as $msg) {
-            echo "<li class='text-danger'>⛔{$msg}</li>";
-        }
-        echo "</ul>";
-    }
+                if (!empty($check['warn'])) {
+                    echo "<h3>Warnings</h3><ul>";
+                    foreach ($check['warn'] as $msg) {
+                        echo "<li class='text-warning'>⚠ {$msg}</li>";
+                    }
+                    echo "</ul>";
+                }
+                if (!empty($check['error'])) {
+                    echo "<h3>Errors (MUST be fixed)</h3><ul>";
+                    foreach ($check['error'] as $msg) {
+                        echo "<li class='text-danger'>⛔{$msg}</li>";
+                    }
+                    echo "</ul>";
+                }
 
-    $php_error_log = ini_get('error_log');
-} else {
-    if (!empty($check['error'])) {
-        echo '<h3 class="text-danger">Hosting Environment errors found. Login to see details.</h3>';
-    }
+                $php_error_log = ini_get('error_log');
+            } else {
+                if (!empty($check['error'])) {
+                    echo '<h3 class="text-danger">Hosting Environment errors found. Login to see details.</h3>';
+                }
+                if (!empty($check['warn'])) {
+                    echo '<h3 class="text-warning">Hosting Environment warnings found. Login to see details.</h3>';
+                }
+            }
 
-    if (!empty($check['warn'])) {
-        echo '<h3 class="text-warning">Hosting Environment warnings found. Login to see details.</h3>';
-    }
-}
-
-?>
+            ?>
 
         </div>
     </div>
@@ -335,29 +333,29 @@ if ($authenticated) {
             <h2 class="h2">Database Update</h2>
 
             <?php
-    $db = false;
-try {
-    $db = db_connect();
-} catch (\Exception $e) {
-    echo "<p class='h3 text-danger'>Something went wrong while trying to connect to the database. A message should be logged - check PHP's error_log (" . ini_get('error_log') . ')</p>';
-    error_log("Couldn't perform PostfixAdmin database update - failed to connect to db? " . $e->getMessage() . " Trace: " . $e->getTraceAsString());
-}
+                $db = false;
+                try {
+                    $db = db_connect();
+                } catch (\Exception $e) {
+                    echo "<p class='h3 text-danger'>Something went wrong while trying to connect to the database. A message should be logged - check PHP's error_log (" . ini_get('error_log') . ')</p>\n';
+                    error_log("Couldn't perform PostfixAdmin database update - failed to connect to db? " . $e->getMessage() . " Trace: " . $e->getTraceAsString());
+                }
 
-if ($db) {
-    echo "<p>Everything seems fine... attempting to create/update database structure</p>\n";
-    try {
-        require_once(dirname(__FILE__) . '/upgrade.php');
-    } catch (\Exception $e) {
-        if ($authenticated) {
-            echo "<p class='h3 text-danger'>Exception message: {$e->getMessage()} - check logs!</p>";
-        }
-        echo "<p class='h3 text-danger'>Something went wrong while trying to apply database updates, a message should be logged - check PHP's error_log (" . ini_get('error_log') . ')</p>';
-        error_log("Couldn't perform PostfixAdmin database update via upgrade.php - " . $e->getMessage() . " Trace: " . $e->getTraceAsString());
-    }
-} else {
-    echo "<h3 class='h3 text-danger'>Could not connect to database to perform updates; check PHP error log.</h3>";
-}
-?>
+                if ($db) {
+                    echo "<p>Everything seems fine... attempting to create/update database structure</p>\n";
+                    try {
+                        require_once(dirname(__FILE__) . '/upgrade.php');
+                    } catch (\Exception $e) {
+                        if ($authenticated) {
+                            echo "<p class='h3 text-danger'>Exception message: {$e->getMessage()} - check logs!</p>";
+                        }
+                        echo "<p class='h3 text-danger'>Something went wrong while trying to apply database updates, a message should be logged - check PHP's error_log (" . ini_get('error_log') . ')</p>\n';
+                        error_log("Couldn't perform PostfixAdmin database update via upgrade.php - " . $e->getMessage() . " Trace: " . $e->getTraceAsString());
+                    }
+                } else {
+                    echo "<h3 class='h3 text-danger'>Could not connect to database to perform updates; check PHP error log.</h3>";
+                }
+            ?>
 
         </div>
     </div>
@@ -418,7 +416,7 @@ if ($db) {
                         foreach ($admins as $row) {
                             echo "<li>{$row['username']}</li>";
                         }
-            ?>
+                        ?>
                     </ul>
                 </div>
             </div>
@@ -501,7 +499,7 @@ if ($db) {
         <?php
     }
 
-?>
+    ?>
 
 
 </div>
@@ -520,8 +518,7 @@ if ($db) {
 
 <?php
 
-function _error_field($errors, $key)
-{
+function _error_field($errors, $key) {
     if (!isset($errors[$key])) {
         return '';
     }
@@ -529,8 +526,7 @@ function _error_field($errors, $key)
 }
 
 
-function create_admin($values)
-{
+function create_admin($values) {
     define('POSTFIXADMIN_SETUP', 1); # avoids instant redirect to login.php after creating the admin
 
     $handler = new AdminHandler(1, 'setup.php');
@@ -558,8 +554,7 @@ function create_admin($values)
 /**
  * @return array like: ['info' => string[], 'warn' => string[], 'error' => string[] ]
  */
-function do_software_environment_check()
-{
+function do_software_environment_check() {
     $CONF = Config::getInstance()->getAll();
 
     $warn = [];
@@ -612,18 +607,16 @@ function do_software_environment_check()
     }
 
 
-    $info[] = "Postfixadmin public url detected as " . getSiteUrl($_SERVER) . " use \$CONF['site_url'] to override";
-
     $info[] = "Postfixadmin installed at - " . realpath(__DIR__);
 
     $error_log_file = ini_get('error_log');
 
     if (file_exists($error_log_file) && is_writable($error_log_file)) {
-        $info[] = "PHP Error log (check your php.ini for <code>error_log</code>) is - $error_log_file";
+        $info[] = "PHP Error log (error_log) is - $error_log_file";
     }
 
     if (file_exists($error_log_file) && !is_writeable($error_log_file)) {
-        $warn[] = "PHP Error log (<code>error_log</code>) is - $error_log_file, but is not writeable. Postfixadmin will be unable to log error(s). <a href='https://www.php.net/manual/en/errorfunc.configuration.php#ini.error-log'>PHP docs on configuring</a>.";
+        $warn[] = "PHP Error log (error_log) is - $error_log_file, but is not writeable. Postfixadmin will be unable to log error(s)";
     }
 
 
@@ -634,7 +627,7 @@ function do_software_environment_check()
     }
 
     // Check if there is support for at least 1 database
-    if (!($m_pdo && ($m_pdo_mysql || $m_pdo_sqlite || $m_pdo_pgsql))) {
+    if (!$m_pdo and !$m_pdo_mysql and !$m_pdo_sqlite and !$m_pdo_pgsql) {
         $error[] = "There is no database (PDO) support in your PHP setup, you MUST install a suitable PHP PDO extension (e.g. pdo_pgsql, pdo_mysql or pdo_sqlite).";
     }
 
@@ -659,25 +652,25 @@ function do_software_environment_check()
     }
 
     if (empty($CONF['encrypt'])) {
-        $error[] = 'Password hashing - <code>$CONF["encrypt"]</code> is empty. Please check your config.inc.php / config.local.php file.';
+        $error[] = 'Password hashing - $CONF["encrypt"] is empty. Please check your config.inc.php / config.local.php file.';
     } else {
-        $info[] = 'Password hashing - <code>$CONF["encrypt"] = ' . $CONF['encrypt'] . "</code>";
+        $info[] = 'Password hashing - $CONF["encrypt"] = ' . $CONF['encrypt'];
 
         try {
             $output = pacrypt('foobar');
             if ($output == 'foobar') {
-                $warn[] = "You appear to be using a cleartext <code>\$CONF['encrypt']</code> setting. This is insecure. You have been warned. Your users deserve better";
+                $warn[] = "You appear to be using a cleartext \$CONF['encrypt'] setting. This is insecure. You have been warned. Your users deserve better";
             }
-            $info[] = 'Password hashing - <code>$CONF["encrypt"]</code> - hash generation OK';
+            $info[] = 'Password hashing - $CONF["encrypt"] - hash generation OK';
         } catch (\Exception $e) {
-            $error[] = "Password Hashing - attempted to use configured encrypt backend (<code>{$CONF['encrypt']}</code>) triggered an error: " . $e->getMessage();
+            $error[] = "Password Hashing - attempted to use configured encrypt backend ({$CONF['encrypt']}) triggered an error: " . $e->getMessage();
 
             if (is_writeable($error_log_file)) {
                 $err = "Possibly helpful error_log messages - " . htmlspecialchars(
-                    implode("",
-                        array_slice(file($error_log_file), -4, 3)  // last three lines, might fail miserably if error_log is large.
-                    )
-                );
+                        implode("",
+                            array_slice(file($error_log_file), -4, 3)  // last three lines, might fail miserably if error_log is large.
+                        )
+                    );
 
                 $error[] = nl2br($err);
             }
@@ -690,10 +683,6 @@ function do_software_environment_check()
         }
     }
 
-    if (empty($CONF['admin_email'])) {
-        $warn[] = 'Admin Email - From address missing. Please add specify an admin_email in your config.inc.php or config.local.php e.g. <code>$CONF["admin_email"] = "Support Person &lt;support@yourdomain.com&gt;";</code>';
-    }
-
     $link = null;
     $error_text = null;
 
@@ -702,7 +691,7 @@ function do_software_environment_check()
     try {
         $dsn = db_connection_string();
 
-        $info[] = "Database connection configured OK (using PDO <code>$dsn</code>)";
+        $info[] = "Database connection configured OK (using PDO $dsn)";
         $link = db_connect();
         $info[] = "Database connection - Connected OK";
     } catch (Exception $e) {
@@ -739,7 +728,7 @@ function do_software_environment_check()
     if ($f_imap_open) {
         $info[] = "Optional - PHP IMAP functions - OK";
     } else {
-        $warn[] = "Warning: Optional dependency - PHP 'imap' extension missing. Without this you may not be able to automate creation of sub-folders for new mailboxes";
+        $warn[] = "Warning: Optional dependency 'imap' extension missing, without this you may not be able to automate creation of sub-folders for new mailboxes";
     }
 
 

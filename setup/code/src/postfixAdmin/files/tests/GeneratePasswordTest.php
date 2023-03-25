@@ -1,9 +1,7 @@
 <?php
 
-class GeneratePasswordTest extends \PHPUnit\Framework\TestCase
-{
-    public function testBasic()
-    {
+class GeneratePasswordTest extends \PHPUnit\Framework\TestCase {
+    public function testBasic() {
         $one = generate_password();
 
         $two = generate_password();
@@ -14,8 +12,7 @@ class GeneratePasswordTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(12, strlen($one));
     }
 
-    public function testLength()
-    {
+    public function testLength() {
         $one = generate_password(1);
 
         $ten = generate_password(10);

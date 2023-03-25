@@ -1,7 +1,4 @@
 <?php
-
-require_once(dirname(__FILE__) . '/vendor/autoload.php');
-
 /**
  * Postfix Admin
  *
@@ -18,19 +15,10 @@ require_once(dirname(__FILE__) . '/vendor/autoload.php');
  * environment and ensures other functions are loaded.
  */
 
-// See: https://github.com/postfixadmin/postfixadmin/pull/541 - try and check if the user has a turkish locale and warn?
-$old = setlocale(LC_ALL, 'C');
-if (preg_match('/_TR/i', $old)) {
-    error_log("WARNING: You may have a Turkish locale set; this breaks the loading of some libraries (Smarty) we depend upon.");
-// don't revert back to $old?
-} else {
-    setlocale(LC_ALL, $old); // revert back.
-}
+if (!defined('POSTFIXADMIN')) { # already defined if called from setup.php
+    define('POSTFIXADMIN', 1); # checked in included files
 
-if (!defined('POSTFIXADMIN')) {
-    define('POSTFIXADMIN', 1);
-
-    if (!defined('POSTFIXADMIN_CLI')) { // postfixadmin-cli
+    if (!defined('POSTFIXADMIN_CLI')) {
         // this is the default; see also https://sourceforge.net/p/postfixadmin/bugs/347/
         session_cache_limiter('nocache');
         session_name('postfixadmin_session');
@@ -46,6 +34,22 @@ if (!defined('POSTFIXADMIN')) {
 }
 
 $incpath = dirname(__FILE__);
+
+/**
+ * @param string $class
+ * __autoload implementation, for use with spl_autoload_register().
+ */
+function postfixadmin_autoload($class) {
+    $PATH = dirname(__FILE__) . '/model/' . $class . '.php';
+
+    if (is_file($PATH)) {
+        require_once($PATH);
+        return true;
+    }
+    return false;
+}
+
+spl_autoload_register('postfixadmin_autoload');
 
 if (!is_file("$incpath/config.inc.php")) {
     die("config.inc.php is missing!");
@@ -90,6 +94,7 @@ if (!defined('POSTFIXADMIN_CLI')) {
     if (!isset($PALANG)) {
         die("environment not setup correctly");
     }
+    require_once(__DIR__  . '/lib/smarty/libs/Autoloader.php');
     Smarty_Autoloader::register();
 }
 

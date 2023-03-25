@@ -40,8 +40,7 @@
                 {$language_selector}
             </div>
             <div class="text-center">
-                <button class="btn btn-primary btn-lg" type="submit" name="submit" value="{$PALANG.pLogin_button}"><span class="glyphicon glyphicon-log-in"
-                                                    		aria-hidden="true"></span> {$PALANG.pLogin_button}</button>
+                <button class="btn btn-primary btn-lg" type="submit" name="submit" value="{$PALANG.pLogin_button}">{$PALANG.pLogin_button}</button>
             </div>
         </form>
         {if $logintype == 'admin'}
@@ -55,3 +54,4 @@
         document.frmLogin.fUsername.focus();
     </script>
 </div>
+

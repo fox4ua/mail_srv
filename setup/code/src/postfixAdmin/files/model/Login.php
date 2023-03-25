@@ -1,12 +1,10 @@
 <?php
 
-class Login
-{
+class Login {
     private $key_table;
     private $table;
 
-    public function __construct(string $tableName)
-    {
+    public function __construct(string $tableName) {
         $ok = ['mailbox', 'admin'];
 
         if (!in_array($tableName, $ok)) {
@@ -23,8 +21,7 @@ class Login
      * @param string $password
      * @return boolean true on successful login (i.e. password matches etc)
      */
-    public function login($username, $password): bool
-    {
+    public function login($username, $password): bool {
         $active = db_get_boolean(true);
         $query = "SELECT password FROM {$this->key_table} WHERE username = :username AND active = :active";
 
@@ -64,8 +61,7 @@ class Login
      * @return false|string
      * @throws Exception
      */
-    public function generatePasswordRecoveryCode(string $username)
-    {
+    public function generatePasswordRecoveryCode(string $username) {
         $sql = "SELECT count(1) FROM {$this->key_table} WHERE username = :username AND active = :active";
 
         $active = db_get_boolean(true);
@@ -94,16 +90,17 @@ class Login
     /**
      * returns user's domain name
      * @param $username
-     * @return string|null
+     * @return mixed|null
      * @throws Exception
      */
-    protected function getUserDomain(string $username)
-    {
+    protected function getUserDomain($username) {
         $sql = "SELECT domain FROM {$this->table} WHERE username = :username AND active = :active";
+
+        $active = db_get_boolean(true);
 
         $values = [
             'username' => $username,
-            'active' => db_get_boolean(true),
+            'active' => $active,
         ];
 
         // Fetch the domain
@@ -127,8 +124,7 @@ class Login
      * @return boolean true on success; false on failure
      * @throws \Exception if invalid user, or db update fails.
      */
-    public function changePassword($username, $new_password, $old_password): bool
-    {
+    public function changePassword($username, $new_password, $old_password): bool {
         list(/*NULL*/, $domain) = explode('@', $username);
 
         if (!$this->login($username, $old_password)) {
@@ -155,47 +151,6 @@ class Login
         }
 
         db_log($domain, 'edit_password', $username);
-
-        $cmd_pw = Config::read('mailbox_postpassword_script');
-
-        if (empty($cmd_pw)) {
-            return true;
-        }
-
-        $warnmsg_pw = Config::Lang('mailbox_postpassword_failed');
-
-        // If we have a mailbox_postpassword_script (dovecot only?)
-
-        // Use proc_open call to avoid safe_mode problems and to prevent showing plain password in process table
-        $spec = array(
-            0 => array("pipe", "r"), // stdin
-            1 => array("pipe", "w"), // stdout
-        );
-
-        $cmdarg1 = escapeshellarg($username);
-        $cmdarg2 = escapeshellarg($domain);
-        $command = "$cmd_pw $cmdarg1 $cmdarg2 2>&1";
-
-        $proc = proc_open($command, $spec, $pipes);
-
-        if (!$proc) {
-            throw new \Exception("can't proc_open $cmd_pw");
-        }
-
-        // Write passwords through pipe to command stdin -- provide old password, then new password.
-        fwrite($pipes[0], $old_password . "\0", 1+strlen($old_password));
-        fwrite($pipes[0], $new_password . "\0", 1+strlen($new_password));
-        $output = stream_get_contents($pipes[1]);
-        fclose($pipes[0]);
-        fclose($pipes[1]);
-
-        $retval = proc_close($proc);
-
-        if (0 != $retval) {
-            error_log("Running $command yielded return value=$retval, output was: " . json_encode($output));
-            throw new \Exception($warnmsg_pw);
-        }
-
         return true;
     }
 }
