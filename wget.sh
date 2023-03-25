@@ -7,5 +7,4 @@ wget https://github.com/fox4ua/mail_srv/archive/master.zip
 apt-get install unzip -y
 unzip master.zip
 cd ./mail_srv-main/
-chmod +x ./setup/init.sh
-./setup/init.sh
+chmod +x ./setup/setup.sh
