@@ -10,6 +10,7 @@ PASSWORD_DEFAULT=$(php -r "echo password_hash('some password here', PASSWORD_DEF
 
 
 mkdir -p /var/www/postfixadmin/templates_c
+chmod -R 775 /var/www/postfixadmin/templates_c/
 chown -R www-data:www-data /var/www/postfixadmin/templates_c
 
 mv code/src/postfixAdmin/postfixadmin.conf /etc/apache2/conf-enabled/postfixadmin.conf
